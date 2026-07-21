@@ -1,5 +1,6 @@
 pill
 .data
+artifacts/
 
 # Python / uv
 .venv/

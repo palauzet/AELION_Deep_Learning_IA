@@ -19,6 +19,8 @@ dl = [
     "pillow>=10.4",
     "numpy>=2.0",
     "matplotlib>=3.9",
+    "mlflow>=2.15",
+    "scikit-learn>=1.5",
 ]
 
 # Outillage de dev — installé via `uv sync` (groupe activé par défaut).
