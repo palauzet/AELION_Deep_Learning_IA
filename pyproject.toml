@@ -1,0 +1,50 @@
+[project]
+name = "indusense"
+version = "0.1.0"
+description = "InduSense 4.0 — TP B6 : détection de défauts visuels par auto-encodeur CNN (préparation des données MVTec AD)"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+license = { text = "Proprietary" }
+authors = [{ name = "Patrick Alauzet" }]
+
+dependencies = []
+
+[dependency-groups]
+# Deep Learning — installé via `uv sync --group dl` (cf. TP_B6_deep_learning_donnees.md).
+dl = [
+    "tensorflow>=2.18",
+    "albumentations>=1.4",
+    "opencv-python-headless>=4.10",
+    "scikit-image>=0.24",
+    "pillow>=10.4",
+    "numpy>=2.0",
+    "matplotlib>=3.9",
+]
+
+# Outillage de dev — installé via `uv sync` (groupe activé par défaut).
+dev = [
+    "jupyterlab>=4.2",
+    "ipykernel>=6.29",
+    "ruff>=0.6",
+    "mypy>=1.11",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/indusense"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.13"
+packages = ["indusense"]
+ignore_missing_imports = true
