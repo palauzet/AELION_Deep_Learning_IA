@@ -44,7 +44,8 @@ notebooks/
 ├── 06_heatmaps_evaluation.ipynb       # partie 2 — heatmaps, AUROC, matrice de confusion
 ├── 07_analyse_correction.ipynb        # correction — diagnostic des 4 catégories non détectées + plan
 ├── 08_correction_phase1.ipynb         # correction — Phase 1 : nouveau score, sans réentraînement
-└── 09_correction_phase2_patchcore.ipynb # correction — Phase 2 : PatchCore (features pré-entraînées)
+├── 09_correction_phase2_patchcore.ipynb # correction — Phase 2 : PatchCore (features pré-entraînées)
+└── 10_patchcore_taille_coreset.ipynb  # correction — effet de la taille du coreset PatchCore
 reports/figures/            # figures livrables
 artifacts/ml/               # modèle entraîné (.keras) + suivi MLflow (gitignoré)
 ```
@@ -82,3 +83,10 @@ modifier les notebooks/méthodes de la partie 2 :
   (`contamination` 66,7 %, `scratch` 41,7 %, `crack` 26,9 %, `faulty_imprint`
   15,8 %), AUROC image-level 0,756→0,857, AUROC pixel-level 0,832→0,969, sans
   nouvelle fausse alerte sur les pièces saines de test.
+- **Aller plus loin** (notebook 10) : teste l'effet de la taille du coreset
+  PatchCore (`coreset_size`/`pre_sample_size`) sans modifier `patchcore.py`.
+  Doubler le coreset (×2) apporte un gain réel (rappel global 53,2 %→60,3 %,
+  `contamination` +14,3 pts, `faulty_imprint` +10,5 pts) au prix d'un ×3 en
+  temps de calcul et d'une fausse alerte supplémentaire ; pousser à ×3
+  n'apporte plus rien (rendements décroissants, voire une légère régression).
+  `crack` reste peu sensible à la taille du coreset (+3,9 pts seulement).
