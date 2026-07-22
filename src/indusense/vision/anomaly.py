@@ -28,6 +28,50 @@ def image_scores(maps: np.ndarray) -> np.ndarray:
     return maps.mean(axis=(1, 2))
 
 
+def healthy_baseline(val_maps: np.ndarray, smooth_sigma: float = 4.0) -> np.ndarray:
+    """Carte de référence saine : moyenne, pixel à pixel, des cartes d'erreur lissées
+    des saines de validation.
+
+    Décision : lisser **chaque carte individuellement** avant de moyenner, jamais
+    flouter le tableau 3D `(n_images, H, W)` d'un coup (cela mélangerait aussi selon
+    l'axe des images, sans rapport avec l'espace).
+
+    Pourquoi cette référence : certaines zones (contour ovale, gravure embossée
+    « FF ») ont une erreur de reconstruction systématiquement élevée sur **toute**
+    pièce saine (bottleneck compressé ×12, cf. notebook 03) — sans référence, un
+    score basé sur le maximum ou un centile brut de la carte d'erreur confond ce
+    bruit de fond normal avec un vrai défaut. Cette carte sert à le soustraire
+    (`image_scores_pooled`) avant de chercher un pic anormal.
+    """
+    smoothed = np.stack([gaussian(m, sigma=smooth_sigma) for m in val_maps])
+    return smoothed.mean(axis=0)
+
+
+def image_scores_pooled(
+    maps: np.ndarray, baseline: np.ndarray, q: float = 99.5, smooth_sigma: float = 4.0
+) -> np.ndarray:
+    """Score d'anomalie par image = centile élevé de l'erreur **après soustraction**
+    de la référence saine (`healthy_baseline`), plutôt qu'une simple moyenne globale.
+
+    Décision : soustraction de la moyenne saine, **sans** division par un
+    écart-type par pixel. Pourquoi : une normalisation par écart-type par pixel a été
+    testée et écartée — avec seulement ~40 images de validation, l'écart-type sur
+    65 536 positions de pixels indépendantes est bien trop bruité pour généraliser
+    (mesuré : 100 % de fausses alertes sur les saines de test). Une simple
+    soustraction de moyenne, plus robuste, reste stable (0 % de fausse alerte) tout
+    en corrigeant le bruit de fond décrit dans `healthy_baseline`.
+
+    Décision : centile élevé (`q`, défaut 99,5) plutôt que la moyenne globale
+    (`image_scores`). Pourquoi : la moyenne globale dilue un défaut localisé sur
+    quelques centaines de pixels dans une moyenne sur 65 536 pixels (cf. écart
+    AUROC pixel vs image du notebook 06) ; un centile élevé se concentre sur les
+    quelques pixels les plus anormaux de l'image, là où se trouve un défaut localisé.
+    """
+    smoothed = np.stack([gaussian(m, sigma=smooth_sigma) for m in maps])
+    residual = np.maximum(smoothed - baseline, 0)
+    return np.percentile(residual.reshape(len(residual), -1), q, axis=1)
+
+
 def calibrate_threshold(
     val_scores: np.ndarray, method: str = "percentile", q: float = 99.0, k: float = 3.0
 ) -> float:
